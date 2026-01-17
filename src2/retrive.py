@@ -1,13 +1,12 @@
 import json
-from src2.groq_llm import LLM  
 from sentence_transformers import CrossEncoder
-
+from src2.groq_llm import LLM
 
 class Retrieve:
-    def __init__(self,vector_store,embedding,queries,top_k=15,similarity_threshold=-0.3,api_key="YOUR_GROQ_API_KEY_HERE"):
+    def __init__(self,vector_store,embedding,top_k=15,similarity_threshold=-0.3,api_key=""):
         self.vector_store = vector_store
         self.embedding = embedding
-        self.queries = queries
+        self.queries = None
         self.all_queries = []
         self.top_k = top_k
         self.similarity_threshold = similarity_threshold
@@ -15,8 +14,8 @@ class Retrieve:
         self.reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 
 
-    def break_query(self):
-      
+    def break_query(self,queries):
+        self.queries=queries
         separators = ["and", ",", "vs", "also", "plus"]
 
         multiple_questions = (
@@ -87,7 +86,7 @@ class Retrieve:
         pairs = [[query, doc] for doc in filtered_docs]
         scores = self.reranker.predict(pairs)
         ranked = sorted(zip(filtered_docs, scores), key=lambda x: x[1], reverse=True)
-        return [doc for doc, _ in ranked[:top_k]]
+        return [doc for doc, _ in ranked[:5]]
  
 
     def get_retrieve(self):

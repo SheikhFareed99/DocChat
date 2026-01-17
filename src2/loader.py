@@ -1,20 +1,34 @@
 from pathlib import Path
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import (
+    PyPDFLoader,
+    JSONLoader,
+    TextLoader,
+    Docx2txtLoader,
+    UnstructuredExcelLoader
+)
 
-class load_data():
-    def  __init__(self, data_p:str):
-       self.path=data_p
+class load_data:
+    def __init__(self, data_path: str):
+        self.path = data_path
 
     def load_all_data(self):
-        documents=[]
-        file_path = Path(self.path).resolve()
-        all_files=list(file_path.glob('**/*.pdf'))
-        print(f"Number of PDF files found: {len(all_files)} names are :{[f.name for f in all_files]}")
-        for file in all_files:
-            loader = PyPDFLoader(str(file))
-            loaded = loader.load()
-            documents.extend(loaded)
-        return documents
-    
+        documents = []
+        base_path = Path(self.path).resolve()
 
-        
+        loaders = [
+            ("**/*.pdf", PyPDFLoader),
+            ("**/*.json", JSONLoader),
+            ("**/*.txt", TextLoader),
+            ("**/*.docx", Docx2txtLoader),
+            ("**/*.xlsx", UnstructuredExcelLoader),
+        ]
+
+        for pattern, LoaderClass in loaders:
+            files = list(base_path.glob(pattern))
+            print(f"{pattern} files found: {len(files)} -> {[f.name for f in files]}")
+
+            for file in files:
+                loader = LoaderClass(str(file))
+                documents.extend(loader.load())
+
+        return documents
